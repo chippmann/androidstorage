@@ -48,14 +48,26 @@ class AndroidStorageImpl(
 
     override fun getInternalDirectoryForMimeType(mimeType: String): File {
         val mimeTypeParts = mimeType.split("/")
-        if (mimeTypeParts.isEmpty()) {
-            return context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
-        }
-        return when (mimeTypeParts[0]) {
-            "image" -> context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
-            "video" -> context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
-            "audio" -> context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
-            else -> context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (mimeTypeParts.isEmpty()) {
+                return context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
+            }
+            when (mimeTypeParts[0]) {
+                "image" -> context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
+                "video" -> context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
+                "audio" -> context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
+                else -> context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.also { it.mkdirs() } ?: throw IllegalStateException("Could not find internal file directory")
+            }
+        } else {
+            if (mimeTypeParts.isEmpty()) {
+                return File(context.filesDir, Environment.DIRECTORY_DOCUMENTS).also { it.mkdirs() }
+            }
+            when (mimeTypeParts[0]) {
+                "image" -> File(context.filesDir, Environment.DIRECTORY_PICTURES).also { it.mkdirs() }
+                "video" -> File(context.filesDir, Environment.DIRECTORY_MOVIES).also { it.mkdirs() }
+                "audio" -> File(context.filesDir, Environment.DIRECTORY_MUSIC).also { it.mkdirs() }
+                else -> File(context.filesDir, Environment.DIRECTORY_DOCUMENTS).also { it.mkdirs() }
+            }
         }
     }
 
